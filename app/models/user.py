@@ -28,7 +28,7 @@ class User(Base):
     )
     is_active : Mapped[bool] = mapped_column(
         Boolean,
-        default= False,
+        default= True,
         nullable= False,
     )
     role : Mapped[str] = mapped_column(

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from app.Schemas.user import UserCreate, UserResponse
+from app.core.pass_security import hash_password
 
 # craete router
 router = APIRouter(
@@ -13,7 +14,7 @@ router = APIRouter(
     tags= ["Authentication"]
 )
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED,)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user_data : UserCreate, db: Session = Depends(get_db)):
     # 1. check whether the email is already exists
     existing_email = db.scalar(select(User).where(User.email == user_data.email))
@@ -25,12 +26,13 @@ def register_user(user_data : UserCreate, db: Session = Depends(get_db)):
         )
         
     # Todo - 2. Hased password
+    hashed_password = hash_password(user_data.password)
     
     # 3. Create a SQLAlchomy User object 
     new_user = User(
         username = user_data.username,
         email = user_data.email,
-        hashed_password = user_data.password
+        hashed_password = hashed_password
     )
     
     # 4. save the user to the database
