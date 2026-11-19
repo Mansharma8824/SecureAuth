@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
+from app.core.user_security import get_current_user
 
 from app.Schemas.user import UserCreate, UserResponse
 from app.Schemas.auth import UserLogin, TokenResponse
@@ -72,7 +73,7 @@ def user_login(user_data : UserLogin, db : Session = Depends(get_db)):
     
     password = verify_password(user_data.password, user.hashed_password)
     
-    if user is None or  not password :
+    if user is None or not password :
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -88,11 +89,12 @@ def user_login(user_data : UserLogin, db : Session = Depends(get_db)):
     token = create_access_token(user.id)
     
     return TokenResponse(access_token=token)
-    
-    
-    
-    
-        
-    
-        
+
+@router.get("/profile")
+def profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "is_active": current_user.is_active
+    }
     
