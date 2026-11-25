@@ -71,9 +71,16 @@ def user_login(user_data : UserLogin, db : Session = Depends(get_db)):
     # status for email
     user = db.scalar(select(User).where(User.email == user_data.email))
     
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     password = verify_password(user_data.password, user.hashed_password)
     
-    if user is None or not password :
+    if not password :
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
